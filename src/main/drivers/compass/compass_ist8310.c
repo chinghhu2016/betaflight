@@ -144,7 +144,7 @@ static int32_t _crossaxis_det = 0;
 
 #define combine(msb, lsb) ((int16_t)(((uint16_t)(msb) << 8) | (lsb)))
 
-static bool initCrossAxisMatrix()
+static bool initCrossAxisMatrix(extDevice_t *dev)
 {
 	// Read cross-axis matrix data
 	uint8_t crossx_buf[6], crossy_buf[6], crossz_buf[6];
@@ -252,7 +252,7 @@ static bool initCrossAxisMatrix()
 	return true;
 }
 
-static void crossAxisTransformation(int16_t *xyz)
+static void crossAxisTransformation(extDevice_t *dev, int16_t *xyz)
 {
 	if (!_crossaxis_enabled) {
 		return;
@@ -270,7 +270,7 @@ static void crossAxisTransformation(int16_t *xyz)
 
 	if (!matrix_initialized) {
 		//PX4_WARN("Cross-axis matrix not initialized, reinitializing");
-		initCrossAxisMatrix();
+		initCrossAxisMatrix(dev);
 		return;
 	}
 
@@ -344,7 +344,7 @@ static bool ist8310Read(magDev_t * magDev, int16_t *magData)
             magData[Z] =  (int16_t)(buf[5] << 8 | buf[4]) * LSB2FSV;
 
             int16_t xyz[3] = {magData[X], magData[Y], magData[Z]};
-            crossAxisTransformation(xyz);
+            crossAxisTransformation(dev, xyz);
             magData[X] = xyz[0];
             magData[Y] = xyz[1];
             magData[Z] = xyz[2];
@@ -355,12 +355,8 @@ static bool ist8310Read(magDev_t * magDev, int16_t *magData)
 
                 return true;
             }
-
             return false;
     }
-
-    // TODO: do cross axis compensation
-
     return false;
 }
 
